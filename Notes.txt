@@ -1,0 +1,782 @@
+-- ************** DAY 01 *****************
+
+1// to clean screen/terminal 
+cls
+
+2// create database named shop
+use shop
+
+3// to see current database
+db
+
+4// to list existing db
+show dbs
+
+5// to create collection named customers
+db.createCollection("customers")
+
+6//to see existing collections
+db.getCollectionNames()
+
+7//to delete existing collection
+db.customers.drop()
+
+8//to delete existing db
+db.dropDatabase()
+
+9//create database named products collection named electronics
+
+-- //********* CREATE DOCUMENT ************
+
+10//insert document inside of electronics
+db.electronics.insertOne({"name": "TV", "price": 200})
+
+11//to insert multiple documents into collection
+db.electronics.insertMany([{"name": "iphone14", "price": 1000}, {"name":"ipod", "price":250, "color": "gray"}, {"name": "TV", "price": 500}])
+
+12// to insert single or multiple documents we can use insert() but it is DEPRICATED
+db.electronics.insert({"name": "radio", "price": 50})
+or 
+db.electronics.insert({"name": "pendrive","price": 100}, {"name": "Ref", "price": 550})
+
+-- //********* READ DOCUMENT ************
+
+13//to list all documents (all documents)
+db.electronics.find()
+db.electronics.find().pretty()
+
+//pretty() formats/display in JSON format
+
+14// to list only first two documents
+db.electronics.find().limit(2)
+
+15// to see 3rd document
+db.electronics.find().skip(2).limit(1)
+
+-- ************** DAY 02 *****************
+
+
+16// display 4th and 5th documents
+db.electronics.find().skip(3).limit(2)
+
+17// display documents where name is "TV"
+
+//syntax for filtering: db.electronics.find({filter})
+db.electronics.find({"name":"TV"})
+
+18// display documents where name is "TV" and brand is "LG"
+
+db.electronics.find({"name":"TV", "brand":"LG"})
+
+//we can get the same result using and operator
+db.electronics.find({$and:[{"name":"TV"}, {"brand":"LG"}]})
+
+
+19// display documents where name is "radio" OR "pendrive"
+
+db.electronics.find({$or:[{name: "radio"}, {name: "pendrive"}]})
+
+20//to display just prices of TV
+
+//syntax for filtering and projection: 
+db.electronics.find({filter}, {projection})
+db.electronics.find({"name":"TV"}, {"price":1})
+
+
+21// to display just prices of TV do not display _id
+
+db.electronics.find({"name":"TV"}, {"price":1, "_id":0})
+//for projection we can use either 1 or 0. 
+//only fields where 1 is used will be displayed 
+//other fields except _id will not be displayed
+
+
+22// bring name and price of all the documents
+
+db.electronics.find({}, {"name":1, "price":1, "_id":0})
+
+
+23// sort previous outcome according to price in ASC order
+
+db.electronics.find({}, {"name":1, "price":1, "_id":0}).sort({"price":1})
+
+
+24// sort previous outcome according to price in DESC order
+
+db.electronics.find({}, {"name":1, "price":1, "_id":0}).sort({"price":-1})
+
+
+25// display first document from the collection
+db.electronics.find().limit(1)
+
+OR 
+
+db.electronics.findOne() //brings first match
+
+26// display first document where name is "TV"
+db.electronics.find({name: "TV"}).limit(1)
+
+OR	
+
+db.electronics.findOne({name:"TV"})
+
+
+27//Comparison Operators
+	
+		Equal to              ==> $eq
+		Less Than             ==> $lt
+		Greater Than          ==> $gt
+		less than or equal    ==> $lte
+		greater than or equal ==> $gte
+		not equal		==> $ne
+		inside array 		  ==> $in
+		not inside array	  ==>$nin
+
+
+28//display documents documents where price is 200
+
+//using normal filtering
+db.electronics.find({"price":200})
+or
+//using $eq
+db.electronics.find({"price":{$eq:200}})
+
+
+29// do not display _id for above result
+db.electronics.find({price:{$eq:200}}, {"_id":0})
+
+30// display documents where price is equal or greater than 250
+db.electronics.find({"price":{$gte:250}})
+
+31//display documents where price is equal to 100, 240, 50
+
+//using $in operator
+db.electronics.find({ "price": { $in: [100,240,50] } }, { "_id": 0 })
+
+//using $or
+
+db.electronics.find({ $or: [{ price: 100 },{ price: 240 },{ price: 50 } ]}, {"_id":0})
+
+
+32//display documents where price is not equal to 100, 240, 50
+
+//using $nin
+db.electronics.find({ "price":{$nin:[100,240,60]}}, { "_id": 0 })
+
+
+
+-- //********* UPDATE DOCUMENT ************
+
+-- //******************************************
+
+-- //** findOneAndUpdate() - findOneAndReplace() **
+
+--//******************************************
+
+// A - findOneAndReplace() 
+//----------------------------
+	1) Searches the document, removes everything inside this document and sets 
+		the entries of the given replacement document.
+	2) not entered fields will removed (Similar to PUT method in API)
+	3) it returns the original document (document before update )
+
+// B - findOneAndUpdate() 
+//----------------------------
+	1) searches the document and updates just the entries in the given update 
+		document. The other entries in the found document will remain.
+		(Similar to PATCH method in API)
+	2) In addition, we can use different atomic operators such as $set(to set directly), $unset, $inc(to increase or decrease), 
+		$mul(to multiply)etc., with the update method.
+	3) it returns the original document (document before update )
+
+
+--//=================================================================
+		NOTE: both methods return original document (document before update)
+		syntax: ({filter}, {update}, {options})
+ 
+
+33//find documents where price is 50 and replace 
+//name with "toys"
+db.electronics.findOneAndReplace({"price":{$eq:50}}, {"name":"toys"}, {})
+
+
+34// find document where price is equal to 1000 update 
+//name with "iphone14 pro", and "tax": 500
+db.electronics.findOneAndUpdate({"price":{$eq:1000}}, {$set:{"name":"iphone14 pro", "tax": 500}}, {})
+
+35//replace document which has lowest
+// price where price is greater than 50
+//with name  with"powerbank", "price" with 110
+db.electronics.findOneAndReplace({"price":{$gt:50}}, {"name":"powerbank", "price":110}, {sort:{"price":1}})
+
+36// update document where price is greater than 200, and lowest price with
+//name "updated " and price with 260
+
+
+
+
+***************************** VSCODE **********************************
+// ******** DAY 03**********
+
+use ("products");
+
+// let 's bring all out documents
+use ("products");
+db.electronics.find();
+ 
+1// find document where price is 200 and update document 
+//by adding "brand" field "Samsung"
+
+use ("products");
+db.electronics.findOneAndUpdate({"price":{$eq:200}},
+                                {$set:{"brand":"Samsung"}},
+                                )
+
+//to see updated document result
+
+use ("products");
+db.electronics.findOneAndUpdate({"price":{$eq:200}},
+                                {$set:{"tax":50}},
+                                {returnNewDocument: true}
+                                )
+
+2// find document where name is "Vacuum Cleaner", 
+//and update price to 150
+
+use ("products");
+db.electronics.findOneAndUpdate({"name":"Vacuum Cleaner"},
+                                {$set:{"price":150}},
+                                {returnNewDocument:true, upsert:true})
+
+// upsert = update + insert--> if there is a document it udpates,
+// if there is no document then insert
+
+3// find documents where price is less than 100 and 
+//update price by multiplying by 2
+
+// updateMany -- to update multiple documents at once 
+
+use ("products");
+db.electronics.updateMany({"price":{$lt:100}},
+                          {$mul:{"price":2}}
+                          )
+
+// we can use update() method which depricated
+//to update multiple docuements at once we need to set multi:true
+//otherwise it will update first match 
+
+4// find documents where price is greater that 500,
+// and add field : "condition": "new"
+
+use ("products");
+db.electronics.update({"price":{$gt:500}}, 
+                    {$set:{"condition":"new"}}, 
+                    {multi:true})
+
+
+
+//*************** DELETE DOCUMENT **************** 
+
+5// find and delete "Vacuum Cleaner"
+use ("products");
+db.electronics.deleteOne({"name":"Vacuum Cleaner"})
+
+6// find documents where price is less than 200 and delete them
+
+use ("products");
+db.electronics.deleteMany({"price":{$lt:200}})
+
+7//to delete all documents at once 
+use ("products");
+db.electronics.deleteMany({})
+
+use ("products");
+db.electronics.remove({}) //remove() depricated
+
+8// insert new doucments  name :"laptop" specs:{name :"macbookAri" ,model :2022} and 
+// city ["texas","new york"}, instcok:true
+
+use ("products");
+db.electronics.insertOne({"name": "laptop", 
+                            "brand": "apple", 
+                            "specs": {"weight": 2, "color": "gray", "display": 13},
+                            "city": ["new york", "LA"],
+                            "inStock": true
+                        });
+
+
+9// find document which color is gray
+9// a find document which city is new york
+use ("products");
+db.electronics.find({"specs.color":"gray"})
+
+use ("products");
+db.electronics.find({"city":"new york"})
+
+
+//=================================================
+//                   AGGREGATION
+//=================================================
+// 1) aggregation, processing of data in documents and calculate
+// results.
+//
+// 2) The aggregation operation can group values from different documents.
+//
+// 3) By performing various operations on this grouped data, a unique
+// result value can be returned.
+//
+// 4) MongoDB allows aggregation with 3 different methods.
+// a) Aggregation pipeline --> best practice...
+// b) map reduction function (map reduction)
+// c) Single purpose 
+//
+// 5) Aggregation can be compared to the Join operation in SQL.
+//================================================ ==== =
+//                  Aggregation pipeline
+//================================================ ==== =
+
+//An aggregation pipeline consists of one or more stages that process documents:
+// Syntax
+//
+// pipeline = [
+// { $match : { … },
+// { $group : { … },
+// {$sort : {…},
+//...
+//]
+// db.collectionName.aggregate({pipeline}, {options})
+//
+// $match() -> to filter data when selecting
+// $group({_id : "$field"}) - >To group processed data 
+//a group specification must include an _id
+// $sort() -> to sort the results
+
+
+use("school");
+db.grades.insertMany([
+    {_id:6305, name: "A. MacDyver", "assignment":5, "points" :24},
+    {_id:6308, name: "B. Batlock", "assignment":3, "points" :22},
+    {_id:6312, name: "M. Tagnum", "assignment":5, "points" :30},
+    {_id:6319, name: "R. Stiles", "assignment":2, "points" :12},
+    {_id:6322, name: "A. MacDyver", "assignment":2, "points" :14},
+    {_id:6334, name: "R. Stiles", "assignment":1, "points" :10}
+    ]);
+
+
+10// Find the total points of each  assignment
+
+use("school");
+//pipeline variable created
+var pipeline = [
+    {$match:{}},
+    {$group: {"_id":"$assignment", 
+               total_points:{$sum:"$points" } 
+            }}
+]
+
+db.grades.aggregate(pipeline)
+
+//without using variable
+use("school");
+db.grades.aggregate([
+    {$match:{}}, //to filter (for this task no filter)
+    {$group: {"_id":"$assignment", //grouped values of assigment field
+               total_points:{$sum:"$points" } //summed values of points
+            }}
+])
+
+/*
+Stages: Each stage starts from stage operators which are:
+
+$match: It is used for filtering the documents can reduce the amount of documents that are given as input to the next stage.
+$project: It is used to select some specific fields from a collection.
+$group: It is used to group documents based on some value.
+$sort: It is used to sort the document that is rearranging them
+$skip: It is used to skip n number of documents and passes the remaining documents
+$limit: It is used to pass first n number of documents thus limiting them.
+$out: It is used to write resulting documents to a new collection
+Expressions: It refers to the name of the field in input documents for e.g. { $group : { _id : “$assigmnet“, total_points:{$sum:”$points“}}} here $id and $points are expressions.
+
+Accumulators: These are basically used in the group stage
+
+sum: It sums numeric values for the documents in each group
+count: It counts total numbers of documents
+avg: It calculates the average of all given values from all documents
+min: It gets the minimum value from all the documents
+max: It gets the maximum value from all the documents
+first: It gets the first document from the grouping
+last: It gets the last document from the grouping
+*/
+
+11// Find average points of each  assignment
+use("school");
+var pipeline = [
+    {$group:{"_id": "$assignment", "avr_points":{$avg:"$points"}}}
+]
+db.grades.aggregate(pipeline)
+
+12// Find min points of each  assignment
+use("school")
+var pipeline = [
+    {$group: {"_id": "$assignment", "min_points": {$min: "$points"}}}
+]
+db.grades.aggregate(pipeline);
+
+13// Find the average number of points where assignment is less than 4
+use("school");
+var pipeline = [
+    {$match: {"assignment":{$lt:4}}}, //filtered 
+    {$group:{"_id":"$assignment", avg_points:{$avg:"$points"}}}
+]
+db.grades.aggregate(pipeline)
+
+
+//*********** Day 04 *************/
+
+use("school");
+db.grades.insertMany([
+    {_id:6305, name: "A. MacDyver", "assignment":5, "points" :24},
+    {_id:6308, name: "B. Batlock", "assignment":3, "points" :22},
+    {_id:6312, name: "M. Tagnum", "assignment":5, "points" :30},
+    {_id:6319, name: "R. Stiles", "assignment":2, "points" :12},
+    {_id:6322, name: "A. MacDyver", "assignment":2, "points" :14},
+    {_id:6334, name: "R. Stiles", "assignment":1, "points" :10}
+    ]);
+
+1//  Find the total number of points of documents whose names start with A
+//since for there is nothing to group, _id is set to null
+use("school");
+var pipeline = [
+    {$match:{"name":{$regex:"^A"}}}, //stage for filtering
+    {$group:{"_id":null, "total_points":{$sum:"$points"}}} // stage for grouping 
+]
+db.grades.aggregate(pipeline);
+
+2//Find the total number of points of documents whose names end with s
+
+use("school");
+var pipeline = [
+    {$match:{"name":{$regex:"s$"}}}, //stage for filtering
+    {$group:{"_id":null, "total_points":{$sum:"$points"}}} // stage for grouping 
+]
+db.grades.aggregate(pipeline);
+
+3// Find the number of documents with a points less than 19
+
+//1st way
+use("school");
+db.grades.find({"points":{$lt:19}}).count();
+
+//2nd way
+use("school");
+db.grades.count({"points":{$lt:19}}); //depricated
+
+//3rd way; with aggretage and $count
+use("school");
+var pipeline = [
+    {$match:{"points":{$lt:19}}}, //stage filtering
+    {$count:"points"}  //stage counting 
+]
+db.grades.aggregate(pipeline);
+
+//How to add temprory fileds(fields for display)while reporting
+
+use("school")
+db.exams.insertMany(
+[{"author":"dave","score":80,"views":100},
+{"author":"dave","score":85,"views":521},
+{"author":"ahn","score":60,"views":1000},
+{"author":"li","score":55,"views":5000},
+{"author":"annT","score":60,"views":50},
+{"author":"li","score":94,"views":999},
+{"author":"ty","score":95,"views":1000},]);
+
+
+use("school")
+db.accounting.insertMany(
+[{"name":"dave","expense":[-80, -40, -50, -120], "earn":[100, 150]},
+{"name":"dave","expense":[-60, -30, -20], "earn":[200, 50, 130]},
+{"name":"ahn","expense":[-80, -40, -50], "earn":[300, 450]},
+{"name":"li","expense":[-80, -120], "earn":[500, 50, 70, 10]},
+{"name":"annT","expense":[-140, -50, -120], "earn":[400]},
+{"name":"li","expense":[-120], "earn":[22, 375, 65]},
+{"name":"ty","expense":[-180, -40, -70, -12], "earn":[500, 650, 400]}]);
+
+
+4.1//--> Find the exact total expense, total earn 
+
+use("school");
+var pipeline = [
+    {$addFields:{"totalExpense": {$sum:"$expense"}, 
+                "totalEarn": {$sum:"$earn"},
+                
+                }}
+]
+db.accounting.aggregate(pipeline);
+
+4.2//--> Find the exact total cost, total earn and exact balance 
+//values ​​in the document
+
+use("school");
+var pipeline = [
+    {$addFields:{"totalExpense": {$sum:"$expense"}, 
+                "totalEarn": {$sum:"$earn"},
+                }}, //stage to create totalExpense and  totalEarn
+    {$addFields:{"balance" :{$add:["$totalExpense", "$totalEarn"]}}
+    } //stage to use fields that are created in prev.stage
+]
+db.accounting.aggregate(pipeline);
+
+4.3//--> Find the exact total cost, total earn and exact balance 
+//values ​​in the document and sort decreasing order according balance
+
+use("school");
+var pipeline = [
+    {$addFields:{"totalExpense": {$sum:"$expense"}, 
+                "totalEarn": {$sum:"$earn"},
+                }}, //stage to create totalExpense and  totalEarn
+    {$addFields:{"balance" :{$add:["$totalExpense", "$totalEarn"]}}
+    }, //stage to use fields that are created in prev.stage
+    {$sort:{"balance":-1}} //stage for stage
+]
+db.accounting.aggregate(pipeline);
+
+4.4//--> Find the exact total cost, total earn and exact balance 
+//values ​​in the document and sort decreasing order according balance.
+//display fields of name, totalExpense, totalEarn, balance
+
+use("school");
+var pipeline = [
+    {$addFields:{"totalExpense": {$sum:"$expense"}, 
+                "totalEarn": {$sum:"$earn"},
+                }}, //stage to create totalExpense and  totalEarn
+    {$addFields:{"balance" :{$add:["$totalExpense", "$totalEarn"]}}
+    }, //stage to use fields that are created in prev.stage
+    {$sort:{"balance":-1}}, //stage for sorting
+    {$project:{"_id":0, "expense":0, "earn":0}} //stage for projecting
+
+]
+db.accounting.aggregate(pipeline);
+
+//OR
+
+use("school");
+var pipeline = [
+    {$addFields:{"totalExpense": {$sum:"$expense"}, 
+                "totalEarn": {$sum:"$earn"},
+                }}, //stage to create totalExpense and  totalEarn
+    {$addFields:{"balance" :{$add:["$totalExpense", "$totalEarn"]}}
+    }, //stage to use fields that are created in prev.stage
+    {$sort:{"balance":-1}}, //stage for sorting
+    {$project:{"_id":0, "name":1, "totalExpense":1, "totalEarn":1, "balance":1}}
+
+]
+db.accounting.aggregate(pipeline);
+
+//========================================
+//          bulkWrite()
+//========================================
+//bulkWrite() method provides the ability to perform bulk insert,
+// update, and delete operations at once. bulkWrite([])
+
+use("school")
+db.stories.insertMany(
+[{"author":"dave", "score":75, "views": 200},
+{"author":"chris", "score":90, "views": 100},
+{"author":"dave", "score":35, "views": 3000},
+{"author":"mary", "score":80, "views": 350},
+{"author":"dave", "score":54, "views": 333},
+{"author":"mary", "score":97, "views": 2000}]);
+
+5//Run following commands in one method
+//    * Insert {"author":"mark","score":55, "views":555} ,
+//    * update first document's score to 55 where author is "dave",        
+//    * replace first document to {"author":"chris tien","score":55} where author is "chris"
+//    * delete first document where author is mary
+
+use("school");
+db.stories.bulkWrite([
+
+    {insertOne:{"document":{"author":"mark","score":55, "views":555}}},
+    {updateOne:{"filter":{"author":"dave"}, "update":{$set:{"score":55}}}},
+    {replaceOne:{"filter":{"author":"chris"}, "replacement":{"author":"chris tien","score":55}}},
+    {deleteOne:{"filter":{"author":"mary"}}}
+
+]);
+
+db.stories.insertOne()
+
+//=========================================================
+//                  UNIONWITH ( Full Join )
+//=========================================================
+// how to get data from two different collections
+// JOIN is used in SQL 
+//=========================================================    
+
+use("MEDYA")
+db.fictions.insertMany(
+[{"author": "Mehmet Bak",  "price" : 60, "publisher" : "Yildiz",   "amount": 1000 },//60000
+{"author" : "Ali Gel",     "price" : 75, "publisher" : "MaviAy",   "amount": 1200 },
+{"author" : "Su Ak",       "price" : 90, "publisher" : "Caliskan", "amount": 2200},
+{"author" : "Meryem Can",  "price" : 35, "publisher" : "MorEv",    "amount": 560},
+{"author" : "Pelin Su",    "price" : 80, "publisher" : "Hedef",    "amount": 890 },
+{"author" : "Suat Ok",     "price" : 54, "publisher" : "Sinir",    "amount": 245}]);
+
+
+
+use("MEDYA")
+db.attempts.insertMany(
+[{"author": "Mehmet Bak",  "price" : 34, "publisher" : "Yildiz", "amount": 400 },//13600
+{"author" : "Deniz Kos",   "price" : 44, "publisher" : "Yildiz", "amount": 350 },//15400
+{"author" : "Su Ak",       "price" : 50, "publisher" : "MorEv", "amount": 200},
+{"author" : "İsmet Kaç",   "price" : 25, "publisher" : "Hedef","amount": 800},
+{"author" : "Ali Gel",     "price" : 40, "publisher" : "Hedef", "amount": 1200 },
+{"author" : "Meryem Can",  "price" : 22, "publisher" : "MaviAy","amount": 300}]);
+
+
+6//:list all the documents from both collections and sort in desc order on "amount" field
+// do not display id field
+
+use("MEDYA");
+
+var pipeline = [
+    {$unionWith:{coll:"attempts"}}, //stage for joining
+    {$sort:{"amount":-1}},
+    {$project:{"_id":0}}
+]
+
+db.fictions.aggregate(pipeline);
+
+7// write a query which will display total books (in ascending order) of each 
+//publishers from both collections. 
+use("MEDYA");
+
+var pipeline = [
+    {$unionWith:{coll:"attempts"}}, //stage for joining
+    {$group:{"_id":"$publisher", "total_books":{$sum:"$amount"}}},
+    {$sort:{"total_books":1}},
+   // {$project:{"_id":0, "author":1, "publishler":1,  "total_books":1}}
+]
+
+db.fictions.aggregate(pipeline);
+
+//********** DAY 05 ********* */
+use("MEDYA")
+db.fictions.insertMany(
+[{"author": "Mehmet Bak",  "price" : 60, "publisher" : "Yildiz",   "amount": 1000 },//60000
+{"author" : "Ali Gel",     "price" : 75, "publisher" : "MaviAy",   "amount": 1200 },
+{"author" : "Su Ak",       "price" : 90, "publisher" : "Caliskan", "amount": 2200},
+{"author" : "Meryem Can",  "price" : 35, "publisher" : "MorEv",    "amount": 560},
+{"author" : "Pelin Su",    "price" : 80, "publisher" : "Hedef",    "amount": 890 },
+{"author" : "Suat Ok",     "price" : 54, "publisher" : "Sinir",    "amount": 245}]);
+
+
+
+use("MEDYA")
+db.attempts.insertMany(
+[{"author": "Mehmet Bak",  "price" : 34, "publisher" : "Yildiz", "amount": 400 },//13600
+{"author" : "Deniz Kos",   "price" : 44, "publisher" : "Yildiz", "amount": 350 },//15400
+{"author" : "Su Ak",       "price" : 50, "publisher" : "MorEv", "amount": 200},
+{"author" : "İsmet Kaç",   "price" : 25, "publisher" : "Hedef","amount": 800},
+{"author" : "Ali Gel",     "price" : 40, "publisher" : "Hedef", "amount": 1200 },
+{"author" : "Meryem Can",  "price" : 22, "publisher" : "MaviAy","amount": 300}]);
+
+1// write a query which will calculate total revenue (from fiction and attempts) 
+//of each publisher
+
+use("MEDYA");
+var pipeline = [
+    {$unionWith:{coll:"attempts"}},
+    {$group:{"_id":"$publisher", "total_income":{$sum:{$multiply:["$amount", "$price"]}} }}
+
+]
+db.fictions.aggregate(pipeline)
+
+//==================================================================================
+//                       $LOOKUP (LEFT JOIN in SQL) 
+//    //returns unshared documents of first collection and shared documents 
+    // with other joined collection  
+//    {
+//      $lookup:
+//      {
+//        from: <collection to join>,
+//        localField: <field from the input documents>,
+//        foreignField: <field from the documents of the "from" collection>,
+//        as: <output array field>
+//      },
+//      { $unwind:<field path> }//passes field from first stage to next stage
+//    }
+//==================================================================================
+
+
+use("MEDYA")
+db.fictions.insertMany(
+[{"author": "Mehmet Bak",  "price" : 60, "publisher" : "Yildiz",   "amount": 1000 },//60000
+{"author" : "Ali Gel",     "price" : 75, "publisher" : "MaviAy",   "amount": 1200 },
+{"author" : "Su Ak",       "price" : 90, "publisher" : "Caliskan", "amount": 2200},
+{"author" : "Meryem Can",  "price" : 35, "publisher" : "MorEv",    "amount": 560},
+{"author" : "Pelin Su",    "price" : 80, "publisher" : "Hedef",    "amount": 890 },
+{"author" : "Suat Ok",     "price" : 54, "publisher" : "Sinir",    "amount": 245}]);
+
+use("MEDYA")
+db.poems.insertMany(
+[{"writer": "Mehmet Bak",   "price" : 34, "publisher" : "Yildiz", "amount": 400 },
+{"writer" : "Ali Gel",      "price" : 40, "publisher" : "Hedef",  "amount": 1200 },
+{"writer" : "Su Ak",        "price" : 50, "publisher" : "MorEv",  "amount": 200},
+{"writer" : "Meryem Can",   "price" : 22, "publisher" : "MaviAy", "amount": 300},
+{"writer" : "Deniz Kos",    "price" : 44, "publisher" : "Yildiz", "amount": 350 },
+{"writer" : "İsmet Kaç",    "price" : 25, "publisher" : "Hedef",  "amount": 800}]);
+
+
+
+//********** how to use lookup ******** */
+
+use("MEDYA");
+db.fictions.aggregate(
+
+    {$lookup:{
+        from: "poems",
+        localField: "author",
+        foreignField: "writer",
+        as: "common_authors"
+    }}
+
+)
+
+2//write a query that will calculate total books and total 
+// prices for fictions collection and common author from poems collection, 
+
+use("MEDYA");
+var pipeline = [
+    {$lookup:{
+        from: "poems",
+        localField: "author",
+        foreignField: "writer",
+        as: "common_authors"
+    }}, //stage for lookup -for left joining
+
+    {$unwind:{path:"$common_authors"}}, //stage to pass new field to next stage
+
+    {$addFields:{
+        "total_books":{$add:["$amount", "$common_authors.amount"]},
+        "tatal_price":{$add:["$price", "$common_authors.price"]}
+    }}, // stage to calculate total price & books
+    {$project:{"_id":0}}
+]
+db.fictions.aggregate(pipeline);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
